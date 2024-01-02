@@ -42,11 +42,6 @@ namespace GreenHellVR_Core
             Logger.LogInfo($"Plugin {PluginInfo.PLUGIN_NAME} is loaded!");
         }
 
-        public void Start()
-        {
-            
-        }
-
         /// <summary>
         /// Creates a gameobject and attaches the CoreModObject component to is so we can interact with the game
         /// </summary>
