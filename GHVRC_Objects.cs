@@ -12,7 +12,6 @@ namespace GreenHellVR_Core
     public static class GHVRC_Objects
     {
         static readonly string BundlesFolder = Path.Combine(Directory.GetParent(Plugin.instance.modPath).FullName, "Bundles");
-        private static UnityEngine.Event onLoadAssetFromBundleFinished;
 
         static void CheckAssetBundle()
         {

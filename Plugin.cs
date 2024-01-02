@@ -36,10 +36,18 @@ namespace GreenHellVR_Core
             Log = Logger;
 
             SceneManager.sceneLoaded += SceneManager_sceneLoaded;
-
+            SceneManager_sceneLoaded += onSceneLoaded;
             harmony.PatchAll(Assembly.GetExecutingAssembly());
 
             Logger.LogInfo($"Plugin {PluginInfo.PLUGIN_NAME} is loaded!");
+
+            InstatiateModManager();
+        }
+
+        private void onSceneLoaded(Scene scene, LoadSceneMode sceneMode)
+        {
+            Logger.LogInfo($"Scene {scene.name} loaded");
+
         }
 
         /// <summary>
@@ -50,6 +58,7 @@ namespace GreenHellVR_Core
             Logger.LogInfo($"Instantiating Manager gameobject");
 
             GameObject modManager = Instantiate(new GameObject("[ModManager] CoreMod"));
+            modManager.tag = "ModManager";
             modManager.AddComponent<CoreModObject>();
             DontDestroyOnLoad(modManager);
 
