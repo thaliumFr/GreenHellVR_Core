@@ -1,18 +1,15 @@
 ﻿using BepInEx;
 using HarmonyLib;
-using System;
-using System.Collections;
 using System.IO;
 using System.Reflection;
 using UnityEngine;
 using UnityEngine.SceneManagement;
-using Object = UnityEngine.Object;
 using TMPro;
 using BepInEx.Bootstrap;
 using System.Collections.Generic;
 using GreenHellVR_Core;
-using UnityEngine.UI;
-using Enums;
+using UnityEngine.Events;
+using BepInEx.Logging;
 
 namespace GreenHellVR_Core
 {
@@ -21,10 +18,11 @@ namespace GreenHellVR_Core
     public class Plugin : BaseUnityPlugin
     {
         public static Plugin instance;
-        string modPath;
-        Assembly assembly;
+        public string modPath;
+        public Assembly assembly;
+        internal static ManualLogSource Log;
 
-        private Canvas debugCanvas;
+        public UnityAction<Scene, LoadSceneMode> SceneManager_sceneLoaded { get; private set; }
 
         public void Awake()
         {
@@ -32,40 +30,27 @@ namespace GreenHellVR_Core
             instance = this;
             modPath = Path.GetDirectoryName(Info.Location);
             assembly = Assembly.GetExecutingAssembly();
-            ExtractEmbeddedRessources();
+            GHVRC_Objects.ExtractEmbeddedRessources();
 
             Harmony harmony = new("com.thalium.ghvr_core");
+            Log = Logger;
 
             SceneManager.sceneLoaded += SceneManager_sceneLoaded;
 
             harmony.PatchAll(Assembly.GetExecutingAssembly());
 
             Logger.LogInfo($"Plugin {PluginInfo.PLUGIN_NAME} is loaded!");
-
-            string ScenesNames = "Scenes :\n";
-            for (int i = 0; i < SceneManager.sceneCount; i++)
-            {
-                ScenesNames += $"Scene {i} : {SceneManager.GetSceneAt(i).name}\n";
-            }
-            Logger.LogInfo(ScenesNames);
-            
         }
 
-        private void CreateDebugCanvas()
+        public void Start()
         {
-            GameObject debugCanvasGO = new GameObject("debugCanvas");
-            Canvas debugcanvas = debugCanvasGO.AddComponent<Canvas>();
-            debugcanvas.renderMode = RenderMode.ScreenSpaceCamera;
-            debugCanvas.worldCamera = Camera.main;
-
-            Button modsListBtn = GreenHellVR_Core_UI.CreateButton("Mods list");
-            modsListBtn.onClick.AddListener(() => Debug.Log("Button pressed"));
+            
         }
 
         /// <summary>
         /// Creates a gameobject and attaches the CoreModObject component to is so we can interact with the game
         /// </summary>
-        private void InstatiateModManager()
+        public void InstatiateModManager()
         {
             Logger.LogInfo($"Instantiating Manager gameobject");
 
@@ -75,161 +60,23 @@ namespace GreenHellVR_Core
 
             Logger.LogInfo($"Manager gameobject created");
         }
-
-        /// <summary>
-        /// Extracts all the embedded ressources in compilation in the same folder the mod .dll is in
-        /// </summary>
-        private void ExtractEmbeddedRessources()
-        {
-            Logger.LogInfo("Extracting Assets");
-            foreach (string asset in assembly.GetManifestResourceNames())
-            {
-                Logger.LogInfo($"Extracting {asset}");
-                Stream stream = assembly.GetManifestResourceStream(asset);
-                FileStream fileStream = new FileStream(Path.Combine(modPath, asset), FileMode.Create);
-                for (int i = 0; i < stream.Length; i++)
-                    fileStream.WriteByte((byte)stream.ReadByte());
-                fileStream.Close();
-            }
-        }
-
-        private void SceneManager_sceneLoaded(Scene scene, LoadSceneMode loadSceneMode)
-        {
-            Logger.LogInfo($"New scene loaded: {scene.name} (ID {scene.buildIndex})");
-            CoreModObject[] obj = FindObjectsOfType<CoreModObject>();
-
-            if (obj.Length == 0)
-            {
-                InstatiateModManager();
-            }
-            Logger.LogInfo($"ModManagers length : {obj.Length}");
-
-            if (scene.name == "MainMenu")
-            {
-                
-            }
-        }
-
-        #region LoadAssetBundle
-        /// <summary>
-        /// Load an asset bundle from the computer asynchronously
-        /// </summary>
-        /// <param name="path">Absolute path to the location of the Asset Bundle</param>
-        /// <returns>AssetBundle</returns>
-        [Obsolete("it's not really obselete but async methods just doesn't work for now")]
-        public IEnumerator LoadAssetBundleAsync(string path, Action<AssetBundle> callback)
-        {
-            string fullPath = Path.Combine(modPath, path);
-            Logger.LogInfo($"Checking for bundle: {fullPath}");
-            if (path == null || !File.Exists(fullPath))
-            {
-                Logger.LogError("Bundle not found");
-                yield return null;
-            }
-
-            AssetBundleCreateRequest bundleRequest = AssetBundle.LoadFromFileAsync(fullPath);
-            yield return new WaitUntil(() => bundleRequest.isDone);
-
-            Logger.LogInfo($"Bundle {bundleRequest.assetBundle.name} loaded");
-            callback(bundleRequest.assetBundle);
-            yield return null;
-
-        }
-
-        /// <summary>
-        /// Load an asset bundle from the computer
-        /// </summary>
-        /// <param name="path">path to the bundle (ex: MyNamespace.myBundle)</param>
-        /// <returns>AssetBundle</returns>
-        public AssetBundle LoadAssetBundle(string path)
-        {
-            string fullPath = Path.Combine(modPath, path);
-            Logger.LogInfo($"Checking for bundle: {fullPath}");
-            if (path == null || !File.Exists(fullPath))
-            {
-                Logger.LogError("Bundle not found");
-                return null;
-            }
-            
-            AssetBundle Bundle = AssetBundle.LoadFromFile(fullPath);
-            Logger.LogInfo($"Bundle {Bundle.name} loaded");
-            return Bundle;
-        }
-        #endregion
-
-        #region Load Asset from Bundle
-        /// <summary>
-        /// Loads an asset from a previously loaded bundle
-        /// </summary>
-        /// <typeparam name="T">Type of the object you want to get returned - needs to inherit from UnityEngine.Object</typeparam>
-        /// <param name="bundle">The Bundle you want to load the asset from</param>
-        /// <param name="AssetName">the name of the asset (ex: monkey)</param>
-        /// <returns>Asset of type T</returns>
-        [Obsolete("it's not really obselete but async methods just doesn't work for now")]
-        public IEnumerator LoadAssetFromBundleAsync<T>(AssetBundle bundle, string AssetName, Action<T> callback) where T : Object
-        {
-            AssetBundleRequest request = bundle.LoadAssetAsync<T>(AssetName);
-            yield return new WaitUntil(() => request.isDone);
-            Logger.LogInfo($"Asset loaded");
-            callback((T)request.asset);
-            yield return null;
-        }
-
-
-        /// <summary>
-        /// Loads an asset from a previously loaded bundle asynchronously
-        /// </summary>
-        /// <typeparam name="T">Type of the object you want to get returned - needs to inherit from UnityEngine.Object</typeparam>
-        /// <param name="bundle">The Bundle you want to load the asset from</param>
-        /// <param name="AssetName">the name of the asset (ex: monkey)</param>
-        /// <returns>Asset of type UnityEngine.Object</returns>
-        [Obsolete("it's not really obselete but async methods just doesn't work for now")]
-        public IEnumerator LoadAssetFromBundleAsync(AssetBundle bundle, string AssetName)
-        {
-            AssetBundleRequest request = bundle.LoadAssetAsync(AssetName);
-            yield return new WaitUntil(() => request.isDone);
-            Logger.LogInfo($"Asset loaded");
-            yield return request.asset;
-        }
-
-        public T LoadAssetFromBundle<T>(AssetBundle bundle, string AssetName) where T : Object
-        {
-            T asset = bundle.LoadAsset<T>(AssetName);
-            Logger.LogInfo($"Asset {AssetName} loaded");
-            return asset;
-        }
-
-        public Object LoadAssetFromBundle(AssetBundle bundle, string AssetName)
-        {
-            Object asset = bundle.LoadAsset(AssetName);
-            Logger.LogInfo($"Asset {AssetName} loaded");
-            return asset;
-        }
-        #endregion
-        public void SpawnGHVRObject(ItemID id)
-        {
-            
-        }
     }
 }
 
 
 [HarmonyPatch(typeof(MainMenu), "Start")]
-class mainMenuFix
+class MainMenu_Start_Fix
 {
     static void Postfix(MainMenu __instance)
     {
-        Plugin plugin = Plugin.instance;
-        AssetBundle bundle = plugin.LoadAssetBundle("GreenHellVR_Core.monkeybundle");
-        TMP_FontAsset fontAsset = plugin.LoadAssetFromBundle<TMP_FontAsset>(bundle, "Assets/TextMesh Pro/Resources/Fonts & Materials/LiberationSans SDF.asset");
-        GreenHellVR_Core_UI.defaultFontAsset = fontAsset;
+        Plugin.Log.LogInfo("Setting up MainMenu fix");
 
-        Button buttonPrefab = plugin.LoadAssetFromBundle<Button>(bundle, "Assets/Button.prefab");
-        buttonPrefab.onClick.RemoveAllListeners();
-        
-        GreenHellVR_Core_UI.buttonPrefab = buttonPrefab;
-        Debug.Log("Ressources set up");
+        if (GHVRC_UI.defaultFontAsset == null)
+        {
+            GHVRC_UI.defaultFontAsset = __instance.m_Options.GetComponentInChildren<TextMeshProUGUI>().font;
+        }
 
+        Plugin.Log.LogInfo("Setting up MainMenu fix");
         Dictionary<string, BepInEx.PluginInfo> LoadedPlugins = Chainloader.PluginInfos;
 
         /*bool flag2 = false; // just for fun but it doesn't work (default: false)
@@ -239,17 +86,71 @@ class mainMenuFix
         __instance.m_StartSurvival.gameObject.SetActive(!flag2);
         __instance.m_StartChallenge.gameObject.SetActive(!flag2);
         __instance.m_LoadGame.gameObject.SetActive(!flag2);*/
-        
-        Transform QuitBtn = __instance.m_Quit.transform;
 
-        Button modsListBtn = GreenHellVR_Core_UI.CreateButton("Mods list");
-        modsListBtn.onClick.AddListener(() => Debug.Log("Button pressed"));
-        Object.Instantiate(modsListBtn, QuitBtn.parent);
-        modsListBtn.transform.position = QuitBtn.position /*+ Vector3.down * 2*/;
+        Transform QuitBtn = __instance.m_Quit.transform;
+        VRCanvasHelper canvasHelper = VRCanvasHelper.Get();
+
+
+
+        GameObject ModsCanvasGO = Object.Instantiate(new GameObject("modsCanvas"));
+        RectTransform ModsCanvasRect = ModsCanvasGO.AddComponent<RectTransform>();
+        Canvas ModsCanvasComp = ModsCanvasGO.AddComponent<Canvas>();
+
+        Plugin.Log.LogInfo("ModsCanvas created");
+
+        canvasHelper.SetupVRCanvas(ModsCanvasComp, ModsCanvasRect, new Vector3(0.003f, 0.003f, 0.003f));
+        canvasHelper.SetVrCanvasToPositon(ModsCanvasRect, new Vector3(81.178f, 97.683f, 182.291f), new Vector3(0f, -135f, 0f));
+
+        Plugin.Log.LogInfo("ModsCanvas set up");
+
+        GameObject modsListBtnGO = GHVRC_UI.CreateButton("Mods list", QuitBtn.parent, () => Plugin.Log.LogInfo("Button pressed"));
+        modsListBtnGO.transform.position = Vector3.down * 2;
+
+        Plugin.Log.LogInfo("mods list button created at " + modsListBtnGO.transform.position.ToString());
 
         __instance.m_GameVersion.text += $" (MODDED)\n{LoadedPlugins.Count} mods loaded";
-
-        bundle.Unload(false);
     }
-    
 }
+
+[HarmonyPatch(typeof(MainMenu), "UpdateState")]
+class MainMenu_UpdateState_Fix
+{
+    static bool Prefix(ref MainMenuState ___m_State, MainMenu __instance)
+    {
+
+        bool SkipIntro = true;
+        if (SkipIntro && (___m_State == MainMenuState.CompanyLogo || ___m_State == MainMenuState.SecondCompanyLogo || ___m_State == MainMenuState.GameLogo))
+        {
+            ___m_State = MainMenuState.MainMenu;
+            VrInputManager.Get().enabled = false;
+            GreenHellGame.GetVRCanvasHelper().SetVrCanvasToPositon(MainMenuManager.Get().m_RectTransform, new Vector3(82.178f, 97.683f, 182.291f), new Vector3(0f, -135f, 0f));
+            __instance.m_BG.gameObject.SetActive(value: true);
+            __instance.m_CompanyLogo.gameObject.SetActive(value: false);
+            __instance.m_SecondCompanyLogo.gameObject.SetActive(value: false);
+            __instance.m_GameLogo.gameObject.SetActive(value: false);
+            __instance.m_Buttons.SetActive(value: true);
+            Color black = __instance.m_BG.color;
+            black.a = 1f;
+            __instance.m_BG.color = black;
+            GreenHellGame.Instance.m_Settings.ApplySettings();
+            GreenHellGame.Instance.m_InitialSequenceComplete = true;
+            Plugin.Log.LogInfo("Intro skipped");
+        }
+
+        Logger.Log("UpdateState fix");
+        return true;
+    }
+}
+
+
+/*
+if (pos == null){
+    Vector3 forward;
+    Vector3 vector;
+    forward = Player.Get().GetHeadTransform().forward;
+    vector = Player.Get().GetHeadTransform().position + 0.5f * forward;
+    
+    vector = (Physics.Raycast(vector, forward, out RaycastHit raycastHit, 3f) ? raycastHit.point : (vector + forward * 2f));
+    ItemsManager.Get().CreateItem(ItemID.metal_axe, true, vector - forward * 0.2f, Player.Get().transform.rotation);
+}
+ */

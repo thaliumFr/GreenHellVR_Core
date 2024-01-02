@@ -2,15 +2,16 @@
 using BepInEx;
 using Quaternion = UnityEngine.Quaternion;
 using Vector3 = UnityEngine.Vector3;
+using UnityEngine.PlayerLoop;
 
 namespace GreenHellVR_Core
 {
     public class CoreModObject : MonoBehaviour
     {
         private CoreModObject instance;
-        
-        GameObject monkey;
-        Plugin plugin;
+
+        readonly GameObject monkey;
+        static Plugin plugin;
 
         public CoreModObject Get() {
             return instance;
@@ -35,7 +36,7 @@ namespace GreenHellVR_Core
 
             if (player == null)
             {
-                Debug.Log("no player yet -> spawning at origin");
+                Logger.Log("no player yet -> spawning at origin");
                 spawnMonkeyPos = Vector3.zero;
             }
             else
@@ -44,19 +45,13 @@ namespace GreenHellVR_Core
                 spawnMonkeyPos = PlayerTransform.position + PlayerTransform.forward + Vector3.up;
             }
 
-            Debug.Log("Instatiate Monkey");
+            Logger.Log("Instatiate Monkey");
 
             Instantiate(monkey, spawnMonkeyPos, Quaternion.FromToRotation(Vector3.zero, Vector3.up));
-            Debug.Log($"monkey spawned at {spawnMonkeyPos}");
+            Logger.Log($"monkey spawned at {spawnMonkeyPos}");
         }
 
-        public void Update()
-        {
-           if(Input.GetKeyUp(KeyCode.Space)) {
-                SpawnMonkey();
-           }
-        }
-
+        public virtual void Update(){}
     }
 }
 
