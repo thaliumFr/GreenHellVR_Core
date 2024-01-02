@@ -11,7 +11,6 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <None Remove="monkey" />
     <None Remove="monkeybundle" />
   </ItemGroup>
 
@@ -42,9 +41,6 @@
     </Reference>
     <Reference Include="Unity.TextMeshPro">
       <HintPath>..\GHVR_Data\Managed\Unity.TextMeshPro.dll</HintPath>
-    </Reference>
-    <Reference Include="Unity.VSCode.Editor">
-      <HintPath>..\..\..\..\..\UnityProjects\GHVR-obj-bundle\Library\Bee\artifacts\1900b0aE.dag\Unity.VSCode.Editor.dll</HintPath>
     </Reference>
     <Reference Include="UnityEngine.UI">
       <HintPath>..\GHVR_Data\Managed\UnityEngine.UI.dll</HintPath>
