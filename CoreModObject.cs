@@ -2,16 +2,16 @@
 using BepInEx;
 using Quaternion = UnityEngine.Quaternion;
 using Vector3 = UnityEngine.Vector3;
-using UnityEngine.PlayerLoop;
+using System.Collections;
 
 namespace GreenHellVR_Core
 {
     public class CoreModObject : MonoBehaviour
     {
         private CoreModObject instance;
+        AssetBundle assetBundle;
 
-        readonly GameObject monkey;
-        static Plugin plugin;
+        GameObject monkey;
 
         public CoreModObject Get() {
             return instance;
@@ -20,38 +20,43 @@ namespace GreenHellVR_Core
         public void Awake()
         {
             instance = this;
-            plugin = Plugin.instance;
+        }
+
+        public void Start()
+        {
+            assetBundle = GHVRC_Objects.LoadAssetBundle("GreenHellVR_Core.monkeybundle");
+            StartCoroutine(GHVRC_Objects.LoadAssetFromBundleAsync<GameObject>(assetBundle, "monkey", OnMonkeyLoaded));
+        }
+
+
+        public void OnMonkeyLoaded(GameObject monkey)
+        {
+            this.monkey = monkey;
         }
 
         private void SpawnMonkey()
         {
             if (monkey == null)
             {
-                Logger.LogError("no monkey");
+                Plugin.Log.LogError("no monkey");
                 return;
             }
 
-            Vector3 spawnMonkeyPos;
-            Player player = Player.Get();
-
-            if (player == null)
-            {
-                Logger.Log("no player yet -> spawning at origin");
-                spawnMonkeyPos = Vector3.zero;
-            }
-            else
-            {
-                player.TryGetComponent(out Transform PlayerTransform);
-                spawnMonkeyPos = PlayerTransform.position + PlayerTransform.forward + Vector3.up;
-            }
+            Transform playerTransform = Player.Get().GetHeadTransform();
+            float distance = 1f;
 
             Logger.Log("Instatiate Monkey");
+            GameObject monkeyGO = Instantiate(monkey, playerTransform.position + distance * playerTransform.forward.normalized, Quaternion.FromToRotation(Vector3.zero, Vector3.up));
 
-            Instantiate(monkey, spawnMonkeyPos, Quaternion.FromToRotation(Vector3.zero, Vector3.up));
-            Logger.Log($"monkey spawned at {spawnMonkeyPos}");
+            Logger.Log($"monkey spawned at {monkeyGO.transform.position}");
         }
 
-        public virtual void Update(){}
+        public void Update(){
+            if (Input.GetKeyDown(KeyCode.M))
+            {
+                SpawnMonkey();
+            }
+        }
     }
 }
 
