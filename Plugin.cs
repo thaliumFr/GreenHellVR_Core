@@ -10,6 +10,11 @@ using System.Collections.Generic;
 using GreenHellVR_Core;
 using UnityEngine.Events;
 using BepInEx.Logging;
+using System;
+using Object = UnityEngine.Object;
+using BepInEx.Configuration;
+
+
 
 namespace GreenHellVR_Core
 {
@@ -22,26 +27,43 @@ namespace GreenHellVR_Core
         public Assembly assembly;
         internal static ManualLogSource Log;
 
+        // Events
+        [Header("Events")]
+        public Action OnDie;
         public UnityAction<Scene, LoadSceneMode> SceneManager_sceneLoaded { get; private set; }
 
         public void Awake()
         {
             // Plugin startup logic
             instance = this;
+            Log = Logger;
             modPath = Path.GetDirectoryName(Info.Location);
             assembly = Assembly.GetExecutingAssembly();
             GHVRC_Objects.ExtractEmbeddedRessources();
 
+
             Harmony harmony = new("com.thalium.ghvr_core");
-            Log = Logger;
 
             SceneManager.sceneLoaded += SceneManager_sceneLoaded;
             SceneManager_sceneLoaded += onSceneLoaded;
             harmony.PatchAll(Assembly.GetExecutingAssembly());
 
+            // Load Config
+            ConfigManager.Awake();
+            ConfigManager.LoadConfig();
+
             Logger.LogInfo($"Plugin {PluginInfo.PLUGIN_NAME} is loaded!");
 
             InstatiateModManager();
+        }
+
+        public void Update()
+        {
+            if (Input.GetKeyDown(KeyCode.Escape))
+            {
+                Log.LogInfo("Force pause menu");
+                MenuInGameManager.Get().ForcePauseMenu();
+            }
         }
 
         private void onSceneLoaded(Scene scene, LoadSceneMode sceneMode)
@@ -58,7 +80,6 @@ namespace GreenHellVR_Core
             Logger.LogInfo($"Instantiating Manager gameobject");
 
             GameObject modManager = Instantiate(new GameObject("[ModManager] CoreMod"));
-            modManager.tag = "ModManager";
             modManager.AddComponent<CoreModObject>();
             DontDestroyOnLoad(modManager);
 
@@ -83,34 +104,44 @@ class MainMenu_Start_Fix
         Plugin.Log.LogInfo("Setting up MainMenu fix");
         Dictionary<string, BepInEx.PluginInfo> LoadedPlugins = Chainloader.PluginInfos;
 
-        /*bool flag2 = false; // just for fun but it doesn't work (default: false)
+        bool flag2 = ConfigManager.Instance.ConfigFullUI.Value; // just for fun but it doesn't work (default: false)
         __instance.m_Singleplayer.gameObject.SetActive(flag2);
         __instance.m_Multiplayer.gameObject.SetActive(flag2);
         __instance.m_StartStory.gameObject.SetActive(!flag2);
         __instance.m_StartSurvival.gameObject.SetActive(!flag2);
         __instance.m_StartChallenge.gameObject.SetActive(!flag2);
-        __instance.m_LoadGame.gameObject.SetActive(!flag2);*/
+        __instance.m_LoadGame.gameObject.SetActive(!flag2);
 
-        Transform QuitBtn = __instance.m_Quit.transform;
-        VRCanvasHelper canvasHelper = VRCanvasHelper.Get();
+        // Create Mods List canvas
 
+        /// Title label
 
+        GameObject titleGO = GHVRC_UI.CreateText($"Loaded Mods :", __instance.m_Buttons.transform.parent);
+        TMP_Text titleTxt = titleGO.GetComponent<TMP_Text>();
+        titleGO.transform.rotation = __instance.m_Buttons.transform.rotation;
+        titleGO.transform.position = __instance.m_Continue.transform.position;
+        GHVRC_UI.CopyTextProperties(__instance.m_Quit.GetComponentInChildren<TMP_Text>(), ref titleTxt);
+        titleGO.transform.Translate(Vector3.left * 0.5f, Space.Self);
+        Plugin.Log.LogInfo($"Adding Title to the mods list at coords [{titleGO.transform.position}]");
 
-        GameObject ModsCanvasGO = Object.Instantiate(new GameObject("modsCanvas"));
-        RectTransform ModsCanvasRect = ModsCanvasGO.AddComponent<RectTransform>();
-        Canvas ModsCanvasComp = ModsCanvasGO.AddComponent<Canvas>();
+        /// Loaded Mods
 
-        Plugin.Log.LogInfo("ModsCanvas created");
+        int i = 1;
+        foreach (var item in LoadedPlugins)
+        {
+            GameObject txtGO = GHVRC_UI.CreateText($"- {item.Key}", __instance.m_Buttons.transform.parent);
+            TMP_Text txt = txtGO.GetComponent<TMP_Text>();
+            txtGO.transform.rotation = __instance.m_Buttons.transform.rotation;
+            txtGO.transform.position = __instance.m_Continue.transform.position;
+            GHVRC_UI.CopyTextProperties(__instance.m_Quit.GetComponentInChildren<TMP_Text>(), ref txt);
+            txtGO.transform.Translate(Vector3.down * i * 0.05f, Space.Self);
+            txtGO.transform.Translate(Vector3.left * 0.6f, Space.Self);
+            Plugin.Log.LogInfo($"Adding [{item.Key}] {item.Value} to the mods list at coords [{txtGO.transform.position}]");
+            i++;
+        }
 
-        canvasHelper.SetupVRCanvas(ModsCanvasComp, ModsCanvasRect, new Vector3(0.003f, 0.003f, 0.003f));
-        canvasHelper.SetVrCanvasToPositon(ModsCanvasRect, new Vector3(81.178f, 97.683f, 182.291f), new Vector3(0f, -135f, 0f));
-
-        Plugin.Log.LogInfo("ModsCanvas set up");
-
-        GameObject modsListBtnGO = GHVRC_UI.CreateButton("Mods list", QuitBtn.parent, () => Plugin.Log.LogInfo("Button pressed"));
-        modsListBtnGO.transform.position = Vector3.down * 2;
-
-        Plugin.Log.LogInfo("mods list button created at " + modsListBtnGO.transform.position.ToString());
+        // Main menu is at new Vector3(82.178f, 97.683f, 182.291f), new Vector3(0f, -135f, 0f) by default
+        Plugin.Log.LogDebug(__instance.m_Buttons.transform.position.ToString());
 
         __instance.m_GameVersion.text += $" (MODDED)\n{LoadedPlugins.Count} mods loaded";
     }
@@ -121,8 +152,7 @@ class MainMenu_UpdateState_Fix
 {
     static bool Prefix(ref MainMenuState ___m_State, MainMenu __instance)
     {
-
-        bool SkipIntro = true;
+        bool SkipIntro = ConfigManager.Instance.ConfigSkipIntro.Value;
         if (SkipIntro && (___m_State == MainMenuState.CompanyLogo || ___m_State == MainMenuState.SecondCompanyLogo || ___m_State == MainMenuState.GameLogo))
         {
             ___m_State = MainMenuState.MainMenu;
@@ -137,7 +167,7 @@ class MainMenu_UpdateState_Fix
             black.a = 1f;
             __instance.m_BG.color = black;
             GreenHellGame.Instance.m_Settings.ApplySettings();
-            GreenHellGame.Instance.m_InitialSequenceComplete = true;
+            GreenHellGame.Instance.m_InitialSequenceComplete = SkipIntro;
             Plugin.Log.LogInfo("Intro skipped");
         }
 
@@ -146,6 +176,15 @@ class MainMenu_UpdateState_Fix
     }
 }
 
+
+[HarmonyPatch(typeof(Player), nameof(Player.Die))]
+class Player_Die_OnDie
+{
+    static void Postfix()
+    {
+        Plugin.instance.OnDie();
+    }
+}
 
 /*
 if (pos == null){

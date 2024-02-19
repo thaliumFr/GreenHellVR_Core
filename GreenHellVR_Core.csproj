@@ -4,7 +4,7 @@
     <TargetFramework>net46</TargetFramework>
     <AssemblyName>GreenHellVR_Core</AssemblyName>
     <Description>Core mod for GHVR</Description>
-    <Version>0.0.2</Version>
+    <Version>0.1.0</Version>
     <Authors>Thalium</Authors>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     <LangVersion>latest</LangVersion>

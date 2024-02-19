@@ -2,25 +2,21 @@
 using UnityEngine;
 using UnityEngine.Events;
 using UnityEngine.UI;
+using Button = UnityEngine.UI.Button;
 
 namespace GreenHellVR_Core
 {
     public static class GHVRC_UI
     {
-        public static TMP_FontAsset defaultFontAsset;
+        static readonly Font ArialFont = (Font)Resources.GetBuiltinResource(typeof(Font), "Arial.ttf");
+        public static TMP_FontAsset defaultFontAsset = TMP_FontAsset.CreateFontAsset(ArialFont);
 
-        public static void CopyTextSettings(TextMeshProUGUI source, TextMeshProUGUI dest)
+        public static GameObject CreateText(string text, Transform parent = null)
         {
-            dest.font = source.font;
-            dest.fontSize = source.fontSize;
-            dest.color = source.color;
-            dest.fontMaterial = source.fontMaterial;
-            dest.alpha = source.alpha;
-        }
-
-        public static GameObject CreateText(string text, Transform parent)
-        {
-            GameObject go = new("Text");
+            GameObject go = new("Text")
+            {
+                layer = LayerMask.NameToLayer("UI")
+            };
             TextMeshProUGUI label = go.AddComponent<TextMeshProUGUI>();
 
             label.text = text;
@@ -31,38 +27,51 @@ namespace GreenHellVR_Core
             return go;
         }
 
-        public static TextMeshProUGUI CreateText(string text)
+        public static GameObject CreateCanvas(Transform parent = null)
         {
-            TextMeshProUGUI label = new()
+            GameObject go = new("Canvas")
             {
-                text = text,
-                font = defaultFontAsset
+                layer = LayerMask.NameToLayer("UI")
             };
-            label.fontSize *= 0.75f;
 
-            return label;
+            go.AddComponent<Canvas>();
+
+            if (parent != null) { go.transform.parent = parent; }
+
+            return go;
+        }
+
+        public static void ToggleActive(GameObject go)
+        {
+            if (go == null) return;
+            go.SetActive(!go.activeSelf);
+            Plugin.Log.LogInfo($"{go.name} is now {(go.activeSelf ? "active" : "inactive")}");
         }
 
         public static GameObject CreateButton(string text, Transform Parent = null, UnityAction buttonAction = null)
         {
-            GameObject buttonGO = Object.Instantiate(new GameObject(text), Vector3.zero, Quaternion.identity);
+            GameObject buttonGO = new(text);
             RectTransform rectTransform = buttonGO.AddComponent<RectTransform>();
+            Button btnComp = buttonGO.AddComponent<Button>();
 
             if (Parent != null) { rectTransform.SetParent(Parent); }
-            rectTransform.offsetMin = Vector2.zero;
-            rectTransform.offsetMax = Vector2.zero;
-
-            Button btnComp = buttonGO.AddComponent<Button>();
-            
-            GameObject BtnText = Object.Instantiate(new GameObject("text"), Vector3.zero, Quaternion.identity, buttonGO.transform);
-            TextMeshProUGUI txtComp = BtnText.AddComponent<TextMeshProUGUI>();
-
-            txtComp.text = text;
             if (buttonAction != null) { btnComp.onClick.AddListener(buttonAction); }
+            
+            CreateText(text, rectTransform);
 
             Plugin.Log.LogInfo("Button created");
 
             return buttonGO;
+        }
+
+        public static void CopyTextProperties(TMP_Text source, ref TMP_Text destination)
+        {
+            destination.fontSize = source.fontSize;
+            destination.font = source.font;
+            destination.fontStyle = source.fontStyle;
+            destination.fontWeight = source.fontWeight;
+            destination.transform.localScale = source.transform.localScale;
+            //destination.color = source.color;
         }
     }
 }
