@@ -1,4 +1,4 @@
-# GreenHellVR_Core
+# GreenHellVR Core
 
 ## For players
 It adds some functions to the main menu like the ability to skip this LOOOONG intro every time you start the game, and also to enable the buttons like nowadays flatscreen game (note that if enabled, you still won't be able to start a multiplayer game, button is here, not everything behind), you'll also see the list of all the loaded mods

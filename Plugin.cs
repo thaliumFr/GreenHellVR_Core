@@ -1,20 +1,16 @@
 ﻿using BepInEx;
+using BepInEx.Bootstrap;
+using BepInEx.Logging;
+using GreenHellVR_Core;
 using HarmonyLib;
+using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Reflection;
-using UnityEngine;
-using UnityEngine.SceneManagement;
 using TMPro;
-using BepInEx.Bootstrap;
-using System.Collections.Generic;
-using GreenHellVR_Core;
+using UnityEngine;
 using UnityEngine.Events;
-using BepInEx.Logging;
-using System;
-using Object = UnityEngine.Object;
-using BepInEx.Configuration;
-
-
+using UnityEngine.SceneManagement;
 
 namespace GreenHellVR_Core
 {
@@ -44,8 +40,7 @@ namespace GreenHellVR_Core
 
             Harmony harmony = new("com.thalium.ghvr_core");
 
-            SceneManager.sceneLoaded += SceneManager_sceneLoaded;
-            SceneManager_sceneLoaded += onSceneLoaded;
+            SceneManager.sceneLoaded += OnSceneLoaded;
             harmony.PatchAll(Assembly.GetExecutingAssembly());
 
             // Load Config
@@ -57,6 +52,7 @@ namespace GreenHellVR_Core
             InstatiateModManager();
         }
 
+#if DEBUG
         public void Update()
         {
             if (Input.GetKeyDown(KeyCode.Escape))
@@ -65,10 +61,12 @@ namespace GreenHellVR_Core
                 MenuInGameManager.Get().ForcePauseMenu();
             }
         }
+#endif
 
-        private void onSceneLoaded(Scene scene, LoadSceneMode sceneMode)
+        private void OnSceneLoaded(Scene scene, LoadSceneMode sceneMode)
         {
             Logger.LogInfo($"Scene {scene.name} loaded");
+            InstatiateModManager();
 
         }
 
@@ -87,7 +85,6 @@ namespace GreenHellVR_Core
         }
     }
 }
-
 
 [HarmonyPatch(typeof(MainMenu), "Start")]
 class MainMenu_Start_Fix
@@ -185,15 +182,3 @@ class Player_Die_OnDie
         Plugin.instance.OnDie();
     }
 }
-
-/*
-if (pos == null){
-    Vector3 forward;
-    Vector3 vector;
-    forward = Player.Get().GetHeadTransform().forward;
-    vector = Player.Get().GetHeadTransform().position + 0.5f * forward;
-    
-    vector = (Physics.Raycast(vector, forward, out RaycastHit raycastHit, 3f) ? raycastHit.point : (vector + forward * 2f));
-    ItemsManager.Get().CreateItem(ItemID.metal_axe, true, vector - forward * 0.2f, Player.Get().transform.rotation);
-}
- */

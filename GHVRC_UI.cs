@@ -1,7 +1,7 @@
 ﻿using TMPro;
 using UnityEngine;
 using UnityEngine.Events;
-using UnityEngine.UI;
+using Valve.VR.InteractionSystem;
 using Button = UnityEngine.UI.Button;
 
 namespace GreenHellVR_Core
@@ -56,7 +56,7 @@ namespace GreenHellVR_Core
 
             if (Parent != null) { rectTransform.SetParent(Parent); }
             if (buttonAction != null) { btnComp.onClick.AddListener(buttonAction); }
-            
+
             CreateText(text, rectTransform);
 
             Plugin.Log.LogInfo("Button created");
@@ -71,7 +71,7 @@ namespace GreenHellVR_Core
             destination.fontStyle = source.fontStyle;
             destination.fontWeight = source.fontWeight;
             destination.transform.localScale = source.transform.localScale;
-            //destination.color = source.color;
+            destination.color = source.color.ColorWithAlpha(1f);
         }
     }
 }

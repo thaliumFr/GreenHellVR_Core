@@ -1,8 +1,6 @@
 ﻿using UnityEngine;
-using BepInEx;
 using Quaternion = UnityEngine.Quaternion;
 using Vector3 = UnityEngine.Vector3;
-using System.Collections;
 
 namespace GreenHellVR_Core
 {
@@ -13,27 +11,34 @@ namespace GreenHellVR_Core
 
         GameObject monkey;
 
-        public CoreModObject Get() {
+        public CoreModObject Get()
+        {
             return instance;
         }
 
         public void Awake()
         {
+            if (instance != null) { Destroy(gameObject); }
             instance = this;
         }
 
         public void Start()
         {
-            assetBundle = GHVRC_Objects.LoadAssetBundle("GreenHellVR_Core.monkeybundle");
-            StartCoroutine(GHVRC_Objects.LoadAssetFromBundleAsync<GameObject>(assetBundle, "monkey", OnMonkeyLoaded));
+            assetBundle ??= GHVRC_Objects.LoadAssetBundle("GreenHellVR_Core.monkeybundle");
+            if (assetBundle != null && monkey == null)
+            {
+                StartCoroutine(GHVRC_Objects.LoadAssetFromBundleAsync<GameObject>(assetBundle, "monkey", OnMonkeyLoaded));
+            }
         }
-
 
         public void OnMonkeyLoaded(GameObject monkey)
         {
             this.monkey = monkey;
         }
 
+        /// <summary>
+        /// Just spawns in front of the player the famous Blender3D monkey model
+        /// </summary>
         private void SpawnMonkey()
         {
             if (monkey == null)
@@ -46,12 +51,16 @@ namespace GreenHellVR_Core
             float distance = 1f;
 
             Logger.Log("Instatiate Monkey");
-            GameObject monkeyGO = Instantiate(monkey, playerTransform.position + distance * playerTransform.forward.normalized, Quaternion.FromToRotation(Vector3.zero, Vector3.up));
+            GameObject monkeyGO = Instantiate(monkey, playerTransform.position + distance * playerTransform.forward.normalized, Quaternion.identity * Quaternion.Euler(new Vector3(-90f, 0f, 0f)));
+
+            SphereCollider SC = monkeyGO.AddComponent<SphereCollider>();
+            SC.radius = 1f;
 
             Logger.Log($"monkey spawned at {monkeyGO.transform.position}");
         }
 
-        public void Update(){
+        public void Update()
+        {
             if (Input.GetKeyDown(KeyCode.M))
             {
                 SpawnMonkey();

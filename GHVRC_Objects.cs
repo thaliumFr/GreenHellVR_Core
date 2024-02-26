@@ -2,10 +2,9 @@
 using System;
 using System.Collections;
 using System.IO;
-using UnityEngine.SceneManagement;
+using System.Reflection;
 using UnityEngine;
 using Object = UnityEngine.Object;
-using System.Reflection;
 
 namespace GreenHellVR_Core
 {
@@ -13,6 +12,9 @@ namespace GreenHellVR_Core
     {
         static readonly string BundlesFolder = Path.Combine(Directory.GetParent(Plugin.instance.modPath).FullName, "Bundles");
 
+        /// <summary>
+        /// Checks if the Asset bundle directory exists and if not it will create one
+        /// </summary>
         static void CheckAssetBundle()
         {
             Plugin.Log.LogInfo($"Checking for the bundle folder");
@@ -24,7 +26,7 @@ namespace GreenHellVR_Core
         }
 
         /// <summary>
-        /// Extracts all the embedded ressources in compilation in the same folder the mod .dll is in
+        /// Extracts all the embedded ressources in compilation to the Asset bundles folder
         /// </summary>
         public static void ExtractEmbeddedRessources()
         {
@@ -35,7 +37,7 @@ namespace GreenHellVR_Core
             {
                 Plugin.Log.LogInfo($"Extracting {asset}");
                 Stream stream = assembly.GetManifestResourceStream(asset);
-                FileStream fileStream = new FileStream(Path.Combine(BundlesFolder, asset), FileMode.Create);
+                FileStream fileStream = new(Path.Combine(BundlesFolder, asset), FileMode.Create);
                 for (int i = 0; i < stream.Length; i++)
                     fileStream.WriteByte((byte)stream.ReadByte());
                 fileStream.Close();
@@ -122,16 +124,18 @@ namespace GreenHellVR_Core
         #endregion
 
         #region SpawnGHVRObject
-        public static void SpawnGHVRObject(ItemID id, Transform pos)
+        public static Item SpawnGHVRItem(ItemID id, Transform pos)
         {
             Item item = ItemsManager.Get().CreateItem(id, true, pos);
             Plugin.Log.LogInfo(id.ToString() + " has been created");
+            return item;
         }
 
-        public static void SpawnGHVRObject(ItemID id, Vector3 pos, Quaternion rot)
+        public static Item SpawnGHVRItem(ItemID id, Vector3 pos, Quaternion rot)
         {
-            ItemsManager.Get().CreateItem(id, true, pos, rot);
+            Item item = ItemsManager.Get().CreateItem(id, true, pos, rot);
             Plugin.Log.LogInfo(id.ToString() + " has been created");
+            return item;
         }
         #endregion
     }
