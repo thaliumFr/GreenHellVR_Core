@@ -1,39 +1,58 @@
-﻿using UnityEngine;
+﻿using GreenHellVR_Core.Objects;
+using UnityEngine;
 using Quaternion = UnityEngine.Quaternion;
 using Vector3 = UnityEngine.Vector3;
+
+#pragma warning disable CS0436 // Type conflicts with imported type
 
 namespace GreenHellVR_Core
 {
     public class CoreModObject : MonoBehaviour
     {
-        private CoreModObject instance;
+        private static CoreModObject instance;
         AssetBundle assetBundle;
 
         GameObject monkey;
+        GameObject debugMenuGO;
 
-        public CoreModObject Get()
+        public static CoreModObject Get()
         {
             return instance;
         }
 
         public void Awake()
         {
-            if (instance != null) { Destroy(gameObject); }
-            instance = this;
+            if (instance == null)
+            {
+                instance = this;
+                DontDestroyOnLoad(gameObject);
+            }
+            else
+            {
+                Plugin.Log.LogInfo("Destroyed CoreModObject as an instance already exists");
+                Destroy(gameObject);
+
+            }
+
         }
 
         public void Start()
         {
-            assetBundle ??= GHVRC_Objects.LoadAssetBundle("GreenHellVR_Core.monkeybundle");
-            if (assetBundle != null && monkey == null)
+            instance.assetBundle ??= GHVRC_Objects.LoadAssetBundle("GreenHellVR_Core.monkeybundle");
+            if (instance.assetBundle != null && instance.monkey == null)
             {
-                StartCoroutine(GHVRC_Objects.LoadAssetFromBundleAsync<GameObject>(assetBundle, "monkey", OnMonkeyLoaded));
+                StartCoroutine(GHVRC_Objects.LoadAssetFromBundleAsync<GameObject>(instance.assetBundle, "monkey", OnMonkeyLoaded));
             }
+
+
+            instance.debugMenuGO = DebugMenu.ConstructPanel(out DebugMenu debugMenu);
+            instance.debugMenuGO.transform.position = Player.Get().GetHeadTransform().position + Player.Get().GetHeadTransform().forward.normalized;
+            instance.debugMenuGO.transform.rotation = Quaternion.identity * Quaternion.Euler(new Vector3(-90f, 0f, 0f));
         }
 
         public void OnMonkeyLoaded(GameObject monkey)
         {
-            this.monkey = monkey;
+            instance.monkey ??= monkey;
         }
 
         /// <summary>
@@ -41,9 +60,9 @@ namespace GreenHellVR_Core
         /// </summary>
         private void SpawnMonkey()
         {
-            if (monkey == null)
+            if (instance.monkey == null)
             {
-                Plugin.Log.LogError("no monkey");
+                Plugin.Log.LogError("no monkey found");
                 return;
             }
 
@@ -51,10 +70,22 @@ namespace GreenHellVR_Core
             float distance = 1f;
 
             Logger.Log("Instatiate Monkey");
-            GameObject monkeyGO = Instantiate(monkey, playerTransform.position + distance * playerTransform.forward.normalized, Quaternion.identity * Quaternion.Euler(new Vector3(-90f, 0f, 0f)));
+            GameObject monkeyGO = Instantiate(instance.monkey, playerTransform.position + distance * playerTransform.forward.normalized, Quaternion.identity * Quaternion.Euler(new Vector3(-90f, 0f, 0f)));
+
+            monkeyGO.GetComponent<Rigidbody>().mass = 2f;
+
+            PhysicMaterial physicMaterial = new()
+            {
+                staticFriction = 2f,
+                bounciness = .25f,
+                dynamicFriction = 2f,
+                frictionCombine = PhysicMaterialCombine.Maximum,
+            };
 
             SphereCollider SC = monkeyGO.AddComponent<SphereCollider>();
             SC.radius = 1f;
+            SC.material = physicMaterial;
+
 
             Logger.Log($"monkey spawned at {monkeyGO.transform.position}");
         }
@@ -64,6 +95,17 @@ namespace GreenHellVR_Core
             if (Input.GetKeyDown(KeyCode.M))
             {
                 SpawnMonkey();
+            }
+
+            if (Input.GetKeyDown(KeyCode.Escape))
+            {
+                Plugin.Log.LogInfo("Force pause menu");
+                MenuInGameManager.Get().ForcePauseMenu();
+            }
+
+            if (Input.GetKeyDown(KeyCode.D))
+            {
+                GHVRC_Objects.ToggleActive(instance.debugMenuGO);
             }
         }
     }
