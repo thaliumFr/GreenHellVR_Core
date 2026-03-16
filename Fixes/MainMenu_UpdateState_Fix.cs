@@ -1,7 +1,7 @@
 ﻿using HarmonyLib;
 using UnityEngine;
 
-namespace GreenHellVR_Core
+namespace GreenHellVR_Core.Fixes
 {
     [HarmonyPatch(typeof(MainMenu), "UpdateState")]
     class MainMenu_UpdateState_Fix

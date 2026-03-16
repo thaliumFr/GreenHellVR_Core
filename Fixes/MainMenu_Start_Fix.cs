@@ -5,7 +5,7 @@ using System.Collections.Generic;
 using TMPro;
 using UnityEngine;
 
-namespace GreenHellVR_Core
+namespace GreenHellVR_Core.Fixes
 {
     [HarmonyPatch(typeof(MainMenu), "Start")]
     class MainMenu_Start_Fix
@@ -30,6 +30,12 @@ namespace GreenHellVR_Core
             __instance.m_StartChallenge.gameObject.SetActive(!flag2);
             __instance.m_LoadGame.gameObject.SetActive(!flag2);
 
+            /// Warning label
+            GameObject warningMessage = GHVRC_UI.CreateText("Remember that the Full UI mode isn't preperly working, if you encounter issues, please change that in GreenHellVR_Core.cfg file.", out TextMeshProUGUI warningTxt, __instance.m_Buttons.transform.parent);
+            GHVRC_UI.CopyTextProperties(__instance.m_Continue.GetComponentInChildren<TMP_Text>(), ref warningTxt);
+            warningMessage.transform.rotation = __instance.m_Buttons.transform.rotation;
+            warningMessage.transform.position = __instance.m_Continue.transform.position + Vector3.up * 0.1f;
+            warningTxt.alpha = 0.5f;
             // Create Mods List canvas
 
             /// Title label

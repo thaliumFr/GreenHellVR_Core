@@ -7,7 +7,9 @@ namespace GreenHellVR_Core
         public static ConfigManager Instance { get; private set; }
 
         public ConfigEntry<bool> ConfigSkipIntro;
+        public ConfigEntry<float> BackpackMaxWeight;
         public ConfigEntry<bool> ConfigFullUI;
+        public ConfigEntry<bool> ConfigUnlockAllItems;
 
         private Plugin plugin;
 
@@ -24,10 +26,23 @@ namespace GreenHellVR_Core
                 "SkipIntro",
                 true);
 
+            Instance.BackpackMaxWeight = Instance.plugin.Config.Bind(
+                "Miscellaneous",
+                "BackpackMaxWeight",
+                100f);
+
             Instance.ConfigFullUI = Instance.plugin.Config.Bind(
                 "Extra",
                 "FullUI",
                 false);
+
+            Instance.ConfigUnlockAllItems = Instance.plugin.Config.Bind(
+                "Extra",
+                "UnlockAllItems",
+                false);
+
+
+
         }
     }
 }

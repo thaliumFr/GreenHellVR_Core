@@ -27,9 +27,8 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Compile Include="..\GreenHellVR_Core_Include\GHVRC_Objects.cs" Link="GHVRC_Objects.cs" />
     <Compile Include="..\GreenHellVR_Core_Include\GHVRC_UI.cs" Link="GHVRC_UI.cs" />
-    <Compile Include="..\GreenHellVR_Core_Include\Player_Die_OnDie.cs" Link="Player_Die_OnDie.cs" />
+    <Compile Include="..\GreenHellVR_Core_Include\Player_Die_OnDie.cs" Link="Fixes\Player_Die_OnDie.cs" />
     <Compile Include="..\GreenHellVR_Core_Include\Plugin.cs" Link="Plugin.cs" />
   </ItemGroup>
 
@@ -46,10 +45,6 @@
   
   <ItemGroup Condition="'$(TargetFramework.TrimEnd(`0123456789`))' == 'net'">
     <PackageReference Include="Microsoft.NETFramework.ReferenceAssemblies" Version="1.0.2" PrivateAssets="all" />
-  </ItemGroup>
-  
-  <ItemGroup>
-    <ProjectReference Include="..\GreenHellVR_Core_Include\GreenHellVR_Core_Include.csproj" />
   </ItemGroup>
   
   <ItemGroup>
@@ -97,4 +92,8 @@
       <PackagePath>\</PackagePath>
     </None>
   </ItemGroup>
+  
+  <Target Name="PostBuild" AfterTargets="PostBuildEvent">
+    <Exec Command="xcopy &quot;D:\Documents\Dev\Mods\GreenHellVR_Core\bin\Debug\net46\GreenHellVR_Core.dll&quot; &quot;E:\Steam\steamapps\common\Green Hell VR\BepInEx\plugins\GreenHellVR_Core&quot; /Y" />
+  </Target>
 </Project>
