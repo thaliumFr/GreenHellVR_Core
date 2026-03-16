@@ -9,12 +9,12 @@ using UnityEngine;
 
 namespace GreenHellVR_Core.Items
 {
-    class CustomItemInfo : ItemInfo
+    class ModItemInfo : ItemInfo
     {
         public string ItemName { get; private set; }
         private ModItemID CItemID;
 
-        public CustomItemInfo(string ItemName, ModItemID itemID)
+        public ModItemInfo(string ItemName, ModItemID itemID)
         {
             this.ItemName = ItemName;
             this.m_ID = ItemID.None;

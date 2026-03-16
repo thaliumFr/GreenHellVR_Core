@@ -1,0 +1,9 @@
+﻿<?xml version="1.0" encoding="utf-8" ?>
+<Localization>
+  <Language Name="en">
+    <String Name="Monkey">Awesome Monkey</String>
+  </Language>
+  <Language Name="fr">
+    <String Name="Monkey">Super Singe</String>
+  </Language>
+</Localization>

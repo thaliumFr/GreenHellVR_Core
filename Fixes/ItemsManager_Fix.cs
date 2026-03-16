@@ -15,4 +15,13 @@ namespace GreenHellVR_Core.Fixes
             GHVRC_ItemsManager.Initialize();
         }
     }
+
+    [HarmonyPatch(typeof(ItemsManager), "OnObjectMoved")]
+    public class ItemsManager_OnObjectMovedError_Fix
+    {
+        public static bool Prefix(Item item)
+        {
+            return item != null;
+        }
+    }
 }

@@ -24,6 +24,12 @@ namespace GreenHellVR_Core_Include.Items.Objects
         {
             Plugin.Log.LogInfo($"Instantiating Manager gameobject");
 
+            if (CoreModObject.Instance != null)
+            {
+                Plugin.Log.LogInfo($"Manager gameobject already exists, skipping instantiation");
+                return;
+            }
+
             GameObject modManager = Object.Instantiate(new GameObject("[ModManager] CoreMod"));
             modManager.AddComponent<CoreModObject>();
 

@@ -12,7 +12,7 @@ namespace GreenHellVR_Core.Items
 {
     public class CoreModObject : MonoBehaviour
     {
-        private static CoreModObject instance;
+        public static CoreModObject Instance { get; private set; }
         AssetBundle assetBundle;
 
         GameObject monkey;
@@ -20,14 +20,14 @@ namespace GreenHellVR_Core.Items
 
         public static CoreModObject Get()
         {
-            return instance;
+            return Instance;
         }
 
         public void Awake()
         {
-            if (instance == null)
+            if (Instance == null)
             {
-                instance = this;
+                Instance = this;
                 DontDestroyOnLoad(gameObject);
             }
             else
@@ -48,17 +48,17 @@ namespace GreenHellVR_Core.Items
         }
 
         void GetMonkeyBundle(Action<AssetBundle> action) {
-            if (instance.assetBundle == null)
+            if (Instance.assetBundle == null)
             {
                 StartCoroutine(GHVRC_Objects.LoadAssetBundleAsync("GreenHellVR_Core.monkeybundle", (bundle) =>
                 {
-                    instance.assetBundle = bundle;
+                    Instance.assetBundle = bundle;
                     action(bundle);
                 }));
             }
             else
             {
-                action(instance.assetBundle);
+                action(Instance.assetBundle);
             }
         }
 
@@ -66,9 +66,9 @@ namespace GreenHellVR_Core.Items
         {
             GetMonkeyBundle((assetBundle) =>
             {
-                if (assetBundle != null && instance.monkey == null)
+                if (assetBundle != null && Instance.monkey == null)
                 {
-                    StartCoroutine(GHVRC_Objects.LoadAssetFromBundleAsync<GameObject>(assetBundle, "monkey", (monkey) => instance.monkey ??= monkey));
+                    StartCoroutine(GHVRC_Objects.LoadAssetFromBundleAsync<GameObject>(assetBundle, "monkey", (monkey) => Instance.monkey ??= monkey));
                 }
             });
         }
@@ -78,12 +78,12 @@ namespace GreenHellVR_Core.Items
         /// </summary>
         private void SpawnMonkey()
         {
-            if (instance.monkey == null)
+            if (Instance.monkey == null)
             {
                 Plugin.Log.LogInfo("no monkey found, attempting to reload monkey...");
                 LoadMonkey();
 
-                if (instance.monkey == null)
+                if (Instance.monkey == null)
                 {
                     Plugin.Log.LogError("monkey reload failed");
                     return;
@@ -96,8 +96,8 @@ namespace GreenHellVR_Core.Items
             float distance = 1f;
 
             Logger.Log("Instatiate Monkey");
-            GameObject monkeyGO = Instantiate(instance.monkey, playerTransform.position + distance * playerTransform.forward.normalized, Quaternion.identity * Quaternion.Euler(new Vector3(-90f, 0f, 0f)));
-            monkeyGO.transform.localScale *= 0.25f;
+            GameObject monkeyGO = Instantiate(Instance.monkey, playerTransform.position + distance * playerTransform.forward.normalized, Quaternion.identity * Quaternion.Euler(new Vector3(-90f, 0f, 0f)));
+            //monkeyGO.transform.localScale *= 0.25f;
 
             List<GrabPoint> grabPoints = [];
             foreach (Transform child in monkeyGO.transform)
@@ -113,9 +113,19 @@ namespace GreenHellVR_Core.Items
 
             GuidComponent guidComp = monkeyGO.AddComponent<GuidComponent>();
 
+
             Item item = monkeyGO.AddComponent<Item>();
+
+
+            //item.m_Info = itemInfo;
+            
             item.m_GUID = guidComp.GetGuid().ToString();
+            item.m_InfoName = "Monkey";
+
+
             item.Initialize(false);
+            ItemsManager.Get().RegisterItem(item);
+
 
             Grabbable grab = monkeyGO.AddComponent<Grabbable>();
             grab.DualGrabSupport = false;

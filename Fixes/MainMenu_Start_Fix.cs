@@ -34,7 +34,7 @@ namespace GreenHellVR_Core.Fixes
             GameObject warningMessage = GHVRC_UI.CreateText("Remember that the Full UI mode isn't preperly working, if you encounter issues, please change that in GreenHellVR_Core.cfg file.", out TextMeshProUGUI warningTxt, __instance.m_Buttons.transform.parent);
             GHVRC_UI.CopyTextProperties(__instance.m_Continue.GetComponentInChildren<TMP_Text>(), ref warningTxt);
             warningMessage.transform.rotation = __instance.m_Buttons.transform.rotation;
-            warningMessage.transform.position = __instance.m_Continue.transform.position + Vector3.up * 0.1f;
+            warningMessage.transform.position = __instance.m_Continue.transform.position + Vector3.up * 0.5f;
             warningTxt.alpha = 0.5f;
             // Create Mods List canvas
 
