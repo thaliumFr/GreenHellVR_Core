@@ -10,6 +10,7 @@ namespace GreenHellVR_Core
         public ConfigEntry<float> BackpackMaxWeight;
         public ConfigEntry<bool> ConfigFullUI;
         public ConfigEntry<bool> ConfigUnlockAllItems;
+        public ConfigEntry<bool> ConfigMonkeySpawnDebug;
 
         private Plugin plugin;
 
@@ -41,7 +42,10 @@ namespace GreenHellVR_Core
                 "UnlockAllItems",
                 false);
 
-
+            Instance.ConfigMonkeySpawnDebug = Instance.plugin.Config.Bind(
+                "Debug",
+                "MonkeySpawnDebug",
+                false);
 
         }
     }

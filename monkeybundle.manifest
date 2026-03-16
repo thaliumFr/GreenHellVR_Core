@@ -1,9 +1,9 @@
 ManifestFileVersion: 0
-CRC: 293702119
+CRC: 2462242592
 Hashes:
   AssetFileHash:
     serializedVersion: 2
-    Hash: 342ffbbecdc072f799a2e75b57ee5130
+    Hash: 3fb434dcf0ce754ca50e29ca5612dbbe
   TypeTreeHash:
     serializedVersion: 2
     Hash: ec956a730dc81a29b717319adeed9cac
@@ -105,7 +105,9 @@ SerializeReferenceClassIdentifiers:
 - AssemblyName: UnityEngine.UI
   ClassName: UnityEngine.UI.SpriteState
 Assets:
+- Assets/rainbow.mat
 - Assets/InputField.prefab
+- Assets/RAINBOW.shadergraph
 - Assets/TextMesh Pro/Resources/Fonts & Materials/LiberationSans SDF.asset
 - Assets/monkey.prefab
 Dependencies: []

@@ -18,6 +18,8 @@ namespace GreenHellVR_Core.Items
         GameObject monkey;
         GameObject debugMenuGO;
 
+        Material debugMaterial;
+
         public static CoreModObject Get()
         {
             return Instance;
@@ -69,6 +71,7 @@ namespace GreenHellVR_Core.Items
                 if (assetBundle != null && Instance.monkey == null)
                 {
                     StartCoroutine(GHVRC_Objects.LoadAssetFromBundleAsync<GameObject>(assetBundle, "monkey", (monkey) => Instance.monkey ??= monkey));
+                    StartCoroutine(GHVRC_Objects.LoadAssetFromBundleAsync<Material>(assetBundle, "rainbow.mat", (mat) => Instance.debugMaterial ??= mat));
                 }
             });
         }
@@ -98,6 +101,7 @@ namespace GreenHellVR_Core.Items
             Logger.Log("Instatiate Monkey");
             GameObject monkeyGO = Instantiate(Instance.monkey, playerTransform.position + distance * playerTransform.forward.normalized, Quaternion.identity * Quaternion.Euler(new Vector3(-90f, 0f, 0f)));
             //monkeyGO.transform.localScale *= 0.25f;
+            monkeyGO.GetComponent<Renderer>().material = Instance.debugMaterial;
 
             List<GrabPoint> grabPoints = [];
             foreach (Transform child in monkeyGO.transform)
@@ -144,13 +148,14 @@ namespace GreenHellVR_Core.Items
                 Plugin.Log.LogWarning($"Expected 1 left hand device, found {devices.Count}");
             }
 
-            if (
-                Input.GetKeyDown(KeyCode.M) || 
-                (devices.Count == 1 && devices[0].TryGetFeatureValue(CommonUsages.primary2DAxisClick, out bool isPressed) && isPressed)
-            )
+            if (ConfigManager.Instance.ConfigMonkeySpawnDebug.Value)
             {
-                SpawnMonkey();
+                if (Input.GetKeyDown(KeyCode.M) ||((devices.Count == 1 && devices[0].TryGetFeatureValue(CommonUsages.primary2DAxisClick, out bool isPressed) && isPressed)))
+                {
+                    SpawnMonkey();
+                }
             }
+            
 
             if (Input.GetKeyDown(KeyCode.Escape))
             {
