@@ -22,6 +22,7 @@ namespace GreenHellVR_Core.Items
 
         public static void Initialize()
         {
+            Plugin.Log.LogInfo("Initializing GHVRC_ItemsManager...");
             OGItemInfos = Traverse.Create(typeof(ItemsManager)).Field("m_ItemInfos").GetValue<Dictionary<int, ItemInfo>>();
             modItemIDs = [];
             AllItemsIds = [];
@@ -38,6 +39,7 @@ namespace GreenHellVR_Core.Items
             {
                 AllItemsIds.AddItem(itemId);
             }
+            Plugin.Log.LogInfo($"GHVRC_ItemsManager initialized successfully. Found: \n- OG Items: {OGItemsIDsList.Count}\n- Mod Items: {modItemIDs.Count}\n- TOTAL: {AllItemsIds.Count}");
         }
 
         public static ModItemID ConvertItemID(ItemID id)

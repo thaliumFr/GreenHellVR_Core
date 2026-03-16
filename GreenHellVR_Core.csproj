@@ -94,6 +94,6 @@
   </ItemGroup>
   
   <Target Name="PostBuild" AfterTargets="PostBuildEvent">
-    <Exec Command="xcopy &quot;D:\Documents\Dev\Mods\GreenHellVR_Core\bin\Debug\net46\GreenHellVR_Core.dll&quot; &quot;E:\Steam\steamapps\common\Green Hell VR\BepInEx\plugins\GreenHellVR_Core&quot; /Y" />
+    <Exec Command="xcopy &quot;D:\Documents\Dev\Mods\GreenHellVR_Core\bin\Debug\net46\GreenHellVR_Core.dll&quot; &quot;E:\Steam\steamapps\common\Green Hell VR\BepInEx\plugins\GreenHellVR_Core&quot; /Y&#xD;&#xA;xcopy &quot;D:\Documents\Dev\Mods\GreenHellVR_Core\bin\Debug\net46\GreenHellVR_Core.dll&quot; &quot;E:\Oculus\Software\Software\incuvo-s-a-green-hell-vr\BepInEx\plugins&quot; /Y" />
   </Target>
 </Project>

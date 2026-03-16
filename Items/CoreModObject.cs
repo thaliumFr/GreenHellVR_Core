@@ -97,6 +97,7 @@ namespace GreenHellVR_Core.Items
 
             Logger.Log("Instatiate Monkey");
             GameObject monkeyGO = Instantiate(instance.monkey, playerTransform.position + distance * playerTransform.forward.normalized, Quaternion.identity * Quaternion.Euler(new Vector3(-90f, 0f, 0f)));
+            monkeyGO.transform.localScale *= 0.25f;
 
             List<GrabPoint> grabPoints = [];
             foreach (Transform child in monkeyGO.transform)
@@ -135,7 +136,7 @@ namespace GreenHellVR_Core.Items
 
             if (
                 Input.GetKeyDown(KeyCode.M) || 
-                (devices.Count == 1 && devices[0].TryGetFeatureValue(CommonUsages.menuButton, out bool isPressed) && isPressed)
+                (devices.Count == 1 && devices[0].TryGetFeatureValue(CommonUsages.primary2DAxisClick, out bool isPressed) && isPressed)
             )
             {
                 SpawnMonkey();
