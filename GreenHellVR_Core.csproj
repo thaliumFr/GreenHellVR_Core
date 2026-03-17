@@ -23,6 +23,7 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <None Remove="icon.png" />
     <None Remove="Localization.xml" />
     <None Remove="monkeybundle" />
   </ItemGroup>
@@ -86,6 +87,10 @@
     <Reference Include="Valve.Newtonsoft.Json">
       <HintPath>E:\Steam\steamapps\common\Green Hell VR\GHVR_Data\Managed\Valve.Newtonsoft.Json.dll</HintPath>
     </Reference>
+  </ItemGroup>
+  
+  <ItemGroup>
+    <Resource Include="icon.png" />
   </ItemGroup>
   
   <ItemGroup>
