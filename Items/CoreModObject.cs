@@ -163,7 +163,7 @@ namespace GreenHellVR_Core.Items
                 MenuInGameManager.Get().ForcePauseMenu();
             }
 
-            if (Input.GetKeyDown(KeyCode.D))
+            if (Input.GetKeyDown(KeyCode.F3))
             {
                 //GHVRC_Objects.ToggleActive(instance.debugMenuGO);
             }
