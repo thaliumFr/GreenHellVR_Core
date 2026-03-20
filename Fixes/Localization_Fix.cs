@@ -25,6 +25,10 @@ namespace GreenHellVR_Core.Fixes
                     localizedTexts.Add(localVal.Key, localVal.Value);
                     Plugin.Log.LogInfo($"Added localization: {localVal.Key} = {localVal.Value}");
                 }
+                else
+                {
+                    return;
+                }
             }
 
             localizationTraverse.SetValue(localizedTexts);

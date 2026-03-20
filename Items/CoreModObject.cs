@@ -1,6 +1,7 @@
 ﻿using GreenHellVR_Core_Include.Items.Objects;
 using System;
 using System.Collections.Generic;
+using TriangleNet;
 using UnityEngine;
 using UnityEngine.XR;
 using Quaternion = UnityEngine.Quaternion;
@@ -13,6 +14,9 @@ namespace GreenHellVR_Core.Items
         public static CoreModObject Instance { get; private set; }
 
         GameObject debugMenuGO;
+
+
+        public static Dictionary<string, int> itemCounts = [];
 
         public static CoreModObject Get()
         {
@@ -54,12 +58,18 @@ namespace GreenHellVR_Core.Items
 
             if (ConfigManager.Instance.ConfigMonkeySpawnDebug.Value)
             {
-                if (Input.GetKeyDown(KeyCode.M) ||((devices.Count == 1 && devices[0].TryGetFeatureValue(CommonUsages.primary2DAxisClick, out bool isPressed) && isPressed)))
+                if (Input.GetKeyDown(KeyCode.M))
                 {
                     DebugMonkey.SpawnMonkey();
                 }
             }
             
+            devices[0].TryGetFeatureValue(CommonUsages.primary2DAxisClick, out bool isPressed);
+            if (devices.Count == 1 && isPressed)
+            {
+                Plugin.Log.LogInfo("Primary 2D axis click detected on left hand controller, spawning monkey");
+                DebugMonkey.SpawnMonkey();
+            }
 
             if (Input.GetKeyDown(KeyCode.Escape))
             {
@@ -69,7 +79,12 @@ namespace GreenHellVR_Core.Items
 
             if (Input.GetKeyDown(KeyCode.F3))
             {
+                Plugin.Log.LogInfo("Listing all calls");
                 //GHVRC_Objects.ToggleActive(instance.debugMenuGO);
+                foreach (var item in itemCounts)
+                {
+                    Plugin.Log.LogInfo($"{item.Key} updated {item.Value} times");
+                }
             }
         }
     }

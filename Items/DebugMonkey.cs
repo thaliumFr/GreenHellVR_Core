@@ -8,17 +8,19 @@ using UnityEngine;
 
 namespace GreenHellVR_Core.Items
 {
-    internal class DebugMonkey
+    public class DebugMonkey
     {
         static AssetBundle ModAssetBundle;
 
         static GameObject monkey;
         static Material debugMaterial;
 
+
         static void GetMonkeyBundle(Action<AssetBundle> action)
         {
             if (ModAssetBundle == null)
             {
+                Plugin.Log.LogInfo("Loading AssetBundle for DebugMonkey...");
                 CoreModObject.Instance.StartCoroutine(GHVRC_Objects.LoadAssetBundleAsync("GreenHellVR_Core.monkeybundle", (bundle) =>
                 {
                     ModAssetBundle = bundle;
@@ -37,8 +39,11 @@ namespace GreenHellVR_Core.Items
             {
                 if (assetBundle != null && monkey == null)
                 {
-                    CoreModObject.Instance.StartCoroutine(GHVRC_Objects.LoadAssetFromBundleAsync<GameObject>(assetBundle, "monkey", (monkey) => monkey ??= monkey));
-                    CoreModObject.Instance.StartCoroutine(GHVRC_Objects.LoadAssetFromBundleAsync<Material>(assetBundle, "rainbow.mat", (mat) => debugMaterial ??= mat));
+                    CoreModObject.Instance.StartCoroutine(GHVRC_Objects.LoadAssetFromBundleAsync<GameObject>(assetBundle, "monkey", (_monkey) => {
+                        monkey ??= _monkey;
+
+                    }));
+                    CoreModObject.Instance.StartCoroutine(GHVRC_Objects.LoadAssetFromBundleAsync<Material>(assetBundle, "rainbow.mat", (_mat) => debugMaterial ??= _mat));
                 }
             });
         }
@@ -47,7 +52,7 @@ namespace GreenHellVR_Core.Items
         /// <summary>
         /// Just spawns in front of the player the famous Blender3D monkey model
         /// </summary>
-        internal static void SpawnMonkey()
+        public static void SpawnMonkey()
         {
             if (monkey == null)
             {
@@ -86,10 +91,17 @@ namespace GreenHellVR_Core.Items
             GuidComponent guidComp = monkeyGO.AddComponent<GuidComponent>();
 
 
-            Item item = monkeyGO.AddComponent<Item>();
+            ItemToy item = monkeyGO.AddComponent<ItemToy>();
 
 
-            //item.m_Info = itemInfo;
+            item.m_Info = new ItemToyInfo() { 
+                m_CanBePlacedInStorage = true,
+                m_BackpackPocket = Enums.BackpackPocket.Storage,
+                m_CantDestroy = true,
+                m_Item = item,
+                m_InventoryScale = 1f,
+                m_Type = Enums.ItemType.Item,
+            };
 
             item.m_GUID = guidComp.GetGuid().ToString();
             item.m_InfoName = "Monkey";
